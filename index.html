@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Human Singularity: Course Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Font Assignments */
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .serif-text { font-family: 'Merriweather', serif; }
+
+        /* Chart Container Specifics */
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 350px;
+            margin: 0 auto;
+        }
+
+        /* Smooth Transitions */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Hover Effects */
+        .module-card {
+            transition: all 0.3s ease;
+        }
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Active Filter State */
+        .filter-btn.active {
+            background-color: #ea580c; /* orange-600 */
+            color: white;
+            border-color: #ea580c;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals & Alerts -->
+    <!-- Primary Background: Stone-50 (Warm White) -->
+    <!-- Text: Stone-800 (Dark Warm Grey) -->
+    <!-- Accents: Orange-600 (Alert/Human Impact), Slate-600 (Tech/Structure) -->
+    
+    <!-- Application Structure Plan: 
+         1. Hero Section: Sets the tone ("From Silicon Logic to Social Disruption").
+         2. Conceptual Dashboard: Visualizes the core tension (Agency vs. Convenience) using Chart.js.
+         3. Module Explorer: The core syllabus content presented as interactive cards. Users click to reveal subtopics.
+         4. The Harari Deep Dive: A dedicated section for the specific "Useless Class" thesis with its own conceptual visualization.
+         5. The Watch List Gallery: A filterable grid of the recommended media to engage users with the external resources.
+         6. Conclusion/Call to Action: Summary of the Sovereign Individual path.
+         
+         WHY: This structure moves from the abstract (charts) to the concrete (syllabus modules) to the actionable (media/sovereign stack), reflecting the course's narrative arc from history to future chaos.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Agency vs. Convenience Chart: 
+            - Goal: Illustrate the "Evolution of Control" module conceptually.
+            - Method: Line Chart (Chart.js).
+            - Interaction: Hover to see specific eras (Mainframe, PC, Cloud, AI).
+            - Justification: Shows the trade-off that drives the course narrative.
+         
+         2. The Useless Class Distribution:
+            - Goal: Visualize Harari's thesis on economic relevance.
+            - Method: Doughnut Chart (Chart.js).
+            - Interaction: Click segments to read specific quotes/implications.
+            - Justification: Comparison of distinct groups (Elite, AI, Useless Class) fits a proportional chart well.
+            
+         3. Watch List Gallery:
+            - Goal: Organize the long list of movies.
+            - Method: Grid with JS Filtering.
+            - Interaction: Filter by category (Doc, Fiction, Bio).
+            - Justification: Large lists are overwhelming; categorization aids discovery.
+            
+         4. Module Cards:
+            - Goal: Present syllabus topics without text walls.
+            - Method: HTML/Tailwind Grid + JS Expansion.
+            - Interaction: Click header to expand subtopics.
+            - Justification: Progressive disclosure keeps the UI clean.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 text-stone-800 antialiased selection:bg-orange-200 selection:text-orange-900">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-stone-50/95 backdrop-blur border-b border-stone-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="text-xl font-bold tracking-tight text-stone-900 serif-text">The Human Singularity</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <button onclick="scrollToSection('dashboard')" class="text-stone-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Trends</button>
+                    <button onclick="scrollToSection('modules')" class="text-stone-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Syllabus</button>
+                    <button onclick="scrollToSection('harari')" class="text-stone-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Harari Thesis</button>
+                    <button onclick="scrollToSection('watchlist')" class="text-stone-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Watch List</button>
+                </div>
+                <!-- Mobile menu button placeholder (simplified for single file) -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-stone-500 hover:text-stone-900 focus:outline-none">
+                        ☰
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-stone-50 border-t border-stone-200">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <button onclick="scrollToSection('dashboard')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-100">Trends</button>
+                <button onclick="scrollToSection('modules')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-100">Syllabus</button>
+                <button onclick="scrollToSection('harari')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-100">Harari Thesis</button>
+                <button onclick="scrollToSection('watchlist')" class="block w-full text-left px-3 py-2 text-base font-medium text-stone-700 hover:bg-stone-100">Watch List</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative bg-stone-900 text-stone-100 overflow-hidden">
+        <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+                From Silicon Logic to <br class="hidden md:block" /> <span class="text-orange-500">Social Disruption</span>
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-xl text-stone-300 font-light">
+                An exploration of the technological trajectory from the CPU to the Cloud, and its profound impact on human agency, privacy, and the future of work.
+            </p>
+            <div class="mt-10 flex justify-center gap-4">
+                <button onclick="scrollToSection('modules')" class="px-8 py-3 border border-transparent text-base font-medium rounded-md text-stone-900 bg-orange-500 hover:bg-orange-400 transition-colors shadow-lg">
+                    Explore Syllabus
+                </button>
+                <button onclick="scrollToSection('harari')" class="px-8 py-3 border border-stone-500 text-base font-medium rounded-md text-stone-100 hover:bg-stone-800 transition-colors">
+                    The Harari Thesis
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section 1: Conceptual Dashboard (Trends) -->
+    <section id="dashboard" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-900">The Evolution of Control</h2>
+                <p class="mt-4 text-lg text-stone-600 max-w-3xl mx-auto">
+                    The course traces a historical arc where technological convenience has inversely correlated with user agency. As we moved from personal computing to cloud renters, we traded control for comfort.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Chart Col -->
+                <div class="bg-stone-50 p-6 rounded-xl shadow-inner border border-stone-100">
+                    <h3 class="text-lg font-semibold text-stone-700 mb-4 text-center">The Trade-off: Agency vs. Convenience</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-sm text-stone-500 text-center italic">
+                        Conceptual visualization of the shift from "Unix Philosophy" to "Walled Gardens".
+                    </div>
+                </div>
+
+                <!-- Text Context Col -->
+                <div class="space-y-6">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 text-2xl">
+                            🖥️
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-xl font-bold text-stone-900">The Era of Hardware</h4>
+                            <p class="mt-2 text-stone-600">
+                                Starts with Mainframes and Micro-architecture. Focus on understanding the centralization of power at the hardware level.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 text-2xl">
+                            ☁️
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-xl font-bold text-stone-900">The Cloud Shift</h4>
+                            <p class="mt-2 text-stone-600">
+                                "Rentership society." Moving from owning software to subscribing to services (SaaS), leading to the death of ownership and the rise of the Data Center as the new Factory.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-orange-100 text-orange-600 text-2xl">
+                            👁️
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-xl font-bold text-stone-900">Surveillance Capitalism</h4>
+                            <p class="mt-2 text-stone-600">
+                                The "Datafication of the Self." IoT becomes the Internet of Spies. Privacy shifts from "Nothing to hide" to "Nowhere to hide."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Syllabus Modules -->
+    <section id="modules" class="py-16 bg-stone-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-900">Course Modules</h2>
+                <p class="mt-4 text-lg text-stone-600 max-w-3xl mx-auto">
+                    A structured deep dive into the mechanisms of control, datafication, and societal fracture. Click on a module to uncover the specific topics covered.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="module-grid">
+                <!-- Modules will be injected here by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: The Harari Thesis Deep Dive -->
+    <section id="harari" class="py-16 bg-white border-t border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:text-center mb-10">
+                <h2 class="text-3xl font-bold text-stone-900 text-orange-600">The Harari Thesis</h2>
+                <p class="mt-4 text-xl text-stone-500">
+                    Examining the concepts of <em>Homo Deus</em>, the "Useless Class," and the rise of Digital Dictatorships.
+                </p>
+            </div>
+
+            <div class="bg-stone-900 rounded-2xl overflow-hidden shadow-2xl">
+                <div class="grid grid-cols-1 lg:grid-cols-2">
+                    <div class="p-8 lg:p-12 flex flex-col justify-center">
+                        <h3 class="text-2xl font-bold text-stone-100 mb-6">The Rise of the "Useless Class"</h3>
+                        <p class="text-stone-300 mb-6 text-lg leading-relaxed">
+                            As Artificial Intelligence surpasses human capability in pattern recognition and data processing, Harari argues we face a new threat: not exploitation, but <strong>irrelevance</strong>.
+                        </p>
+                        <ul class="space-y-4 text-stone-400">
+                            <li class="flex items-center">
+                                <span class="text-orange-500 mr-2">⚠</span> 
+                                <span><strong>Dataism:</strong> The new religion where information flow is the supreme value.</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-orange-500 mr-2">⚠</span> 
+                                <span><strong>Digital Dictatorships:</strong> Algorithms that know your political and consumer preferences better than you do.</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-orange-500 mr-2">⚠</span> 
+                                <span><strong>Bio-hacking:</strong> The potential biological split between a super-enhanced elite and the natural poor.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-stone-800 p-8 lg:p-12 flex flex-col items-center justify-center relative">
+                        <!-- Chart Container -->
+                         <div class="chart-wrapper" style="height: 300px; max-width: 400px;">
+                            <canvas id="harariChart"></canvas>
+                        </div>
+                        <p id="harari-caption" class="mt-6 text-center text-sm text-stone-400 max-w-sm">
+                            Click chart segments to explore the future societal stratification.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Watch List Gallery -->
+    <section id="watchlist" class="py-16 bg-stone-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-stone-200 pb-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-stone-900">The Mirror to Our Future</h2>
+                    <p class="mt-2 text-stone-600">Recommended viewing to visualize the theoretical concepts.</p>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-2" id="filter-container">
+                    <button class="filter-btn active px-4 py-2 text-sm font-medium rounded-full border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 transition-colors" data-filter="all">All</button>
+                    <button class="filter-btn px-4 py-2 text-sm font-medium rounded-full border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 transition-colors" data-filter="documentary">Documentaries</button>
+                    <button class="filter-btn px-4 py-2 text-sm font-medium rounded-full border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 transition-colors" data-filter="fiction">Fiction</button>
+                    <button class="filter-btn px-4 py-2 text-sm font-medium rounded-full border border-stone-300 bg-white text-stone-700 hover:bg-stone-100 transition-colors" data-filter="bio">Biographical</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="movie-grid">
+                <!-- Movies injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer / Sovereign Stack CTA -->
+    <footer class="bg-stone-900 text-stone-400 py-12 border-t border-stone-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-2xl font-bold text-stone-100 mb-4 serif-text">Reclaim Your Autonomy</h2>
+            <p class="max-w-2xl mx-auto mb-8">
+                The course concludes with "The Sovereign Individual." While the threats are systemic, the defenses are personal. 
+                Learn <strong>Crypto</strong>, master <strong>Encryption</strong>, and fight for digital autonomy.
+            </p>
+            <div class="flex justify-center space-x-4 text-sm font-mono text-orange-500">
+                <span>[Tor_Browser]</span>
+                <span>[Tails_OS]</span>
+                <span>[Qubes_OS]</span>
+                <span>[PGP_Keys]</span>
+            </div>
+            <p class="mt-12 text-xs text-stone-600">
+                &copy; 2025 The Human Singularity Course Module.
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DATA STORAGE ---
+
+        // Module Data derived directly from the Syllabus
+        const modules = [
+            {
+                id: 1,
+                title: "The Evolution of Control",
+                subtitle: "From CPU to The Cloud",
+                icon: "🕹️",
+                topics: [
+                    "Mainframes to Micro-architecture: Centralization cycles",
+                    "Unix philosophy vs. The Walled Garden: Loss of agency",
+                    "The Data Center as the new Factory: Invisible labor",
+                    "Cloud Computing: Rentership society & death of ownership"
+                ]
+            },
+            {
+                id: 2,
+                title: "The Datafication of the Self",
+                subtitle: "Surveillance Capitalism",
+                icon: "📊",
+                topics: [
+                    "IoT: The Internet of Spies",
+                    "Big Data & Surveillance Capitalism: Commodification of behavior",
+                    "The End of Privacy: From 'Nothing to hide' to 'Nowhere to hide'",
+                    "Algorithmic Bias and Digital Redlining"
+                ]
+            },
+            {
+                id: 3,
+                title: "The Automation of Existence",
+                subtitle: "Virtualization to AI",
+                icon: "🤖",
+                topics: [
+                    "Virtualization and Containers: Abstraction from reality",
+                    "Infrastructure as Code (IaC): Replacing management with scripts",
+                    "The Gig Economy: Algorithms as managers (Uber/Lyft)",
+                    "Machine Learning: The Black Box problem"
+                ]
+            },
+            {
+                id: 4,
+                title: "The Harari Thesis",
+                subtitle: "Homo Deus & The Useless Class",
+                icon: "🧬",
+                topics: [
+                    "Dataism: The new religion of information flow",
+                    "The 'Useless Class': Economic irrelevance vs. exploitation",
+                    "Digital Dictatorships: Knowing you better than yourself",
+                    "Bio-hacking: The elite vs. the natural poor"
+                ]
+            },
+            {
+                id: 5,
+                title: "Societal Fractures",
+                subtitle: "The Upcoming Chaos",
+                icon: "💥",
+                topics: [
+                    "Disappearance of the Middle Class: Tech Oligarchy",
+                    "Generation Z: Dopamine loops & attention economy",
+                    "Work Abundance vs. Purpose Scarcity: Bullshit Jobs",
+                    "Truth Decay: Deepfakes & Echo Chambers",
+                    "The Sovereign Individual: Crypto & Encryption"
+                ]
+            }
+        ];
+
+        // Movie Data with Categories for Filtering
+        // Categories inferred from titles (Doc, Fiction, Bio)
+        const movies = [
+            { title: "The Great Hack", type: "documentary", tags: ["Data", "Politics"] },
+            { title: "The Social Dilemma", type: "documentary", tags: ["Social Media", "Psychology"] },
+            { title: "Robots Will Steal Your Job", type: "documentary", tags: ["Economics", "AI"] },
+            { title: "Citizenfour", type: "documentary", tags: ["Surveillance", "Privacy"] },
+            { title: "The Internet's Own Boy", type: "documentary", tags: ["Activism", "Law"] },
+            { title: "Zero Days", type: "documentary", tags: ["Cyberwar", "Infrastructure"] },
+            { title: "Lo and Behold", type: "documentary", tags: ["Society", "Internet"] },
+            { title: "Transcendence", type: "fiction", tags: ["AI", "Singularity"] },
+            { title: "Her", type: "fiction", tags: ["AI", "Relationships"] },
+            { title: "Ex Machina", type: "fiction", tags: ["AI", "Ethics"] },
+            { title: "Black Mirror (Nosedive)", type: "fiction", tags: ["Social Credit", "Dystopia"] },
+            { title: "Mr. Robot", type: "fiction", tags: ["Hacking", "Society"] },
+            { title: "Blade Runner 2049", type: "fiction", tags: ["Identity", "AI"] },
+            { title: "Idiocracy", type: "fiction", tags: ["Society", "Evolution"] },
+            { title: "AlphaGo", type: "documentary", tags: ["AI", "Game Theory"] }
+        ];
+
+        // --- CORE INTERACTION & RENDER FUNCTIONS ---
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Scroll Logic
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+                // Close mobile menu if open
+                document.getElementById('mobile-menu').classList.add('hidden');
+            }
+        }
+
+        // Render Modules
+        function renderModules() {
+            const grid = document.getElementById('module-grid');
+            grid.innerHTML = modules.map(mod => `
+                <div class="module-card bg-white rounded-lg p-6 shadow-sm border border-stone-200 flex flex-col h-full hover:border-orange-200">
+                    <div class="flex items-center mb-4">
+                        <span class="text-4xl mr-4">${mod.icon}</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-stone-800">${mod.title}</h3>
+                            <p class="text-sm text-stone-500 font-medium">${mod.subtitle}</p>
+                        </div>
+                    </div>
+                    <ul class="space-y-3 mt-2 flex-grow">
+                        ${mod.topics.map(topic => `
+                            <li class="flex items-start text-stone-600 text-sm">
+                                <span class="text-orange-400 mr-2 mt-1">▪</span>
+                                ${topic}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        // Render Movies with Filter
+        function renderMovies(filter = 'all') {
+            const grid = document.getElementById('movie-grid');
+            const filteredMovies = filter === 'all' 
+                ? movies 
+                : movies.filter(m => m.type === filter || (filter === 'bio' && m.title.includes('Story'))); // simplistic bio filter logic
+
+            grid.innerHTML = filteredMovies.map(movie => `
+                <div class="bg-white p-4 rounded-md shadow-sm border border-stone-200 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-stone-800 text-sm">${movie.title}</h4>
+                        <span class="text-xs uppercase font-bold text-orange-600 tracking-wider">${movie.type.substr(0,3)}</span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-1">
+                        ${movie.tags.map(tag => `
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-100 text-stone-600">
+                                ${tag}
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter Button Logic
+        function setupFilters() {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // Update Active State
+                    buttons.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    // Render
+                    renderMovies(e.target.dataset.filter);
+                });
+            });
+        }
+
+        // --- CHARTS INITIALIZATION ---
+
+        function initCharts() {
+            // Chart 1: Evolution of Control (Line Chart)
+            const ctxEvolution = document.getElementById('evolutionChart').getContext('2d');
+            new Chart(ctxEvolution, {
+                type: 'line',
+                data: {
+                    labels: ['Mainframes (1960s)', 'PC Era (1990s)', 'Web 2.0 (2005)', 'Cloud/Mobile (2015)', 'AI/IoT (2025)'],
+                    datasets: [
+                        {
+                            label: 'User Agency (Control)',
+                            data: [20, 90, 70, 40, 15],
+                            borderColor: '#ea580c', // Orange-600
+                            backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Technological Convenience',
+                            data: [10, 40, 70, 90, 98],
+                            borderColor: '#475569', // Slate-600
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(28, 25, 23, 0.9)', // Stone-900
+                            titleFont: { family: 'Inter', size: 14 },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            padding: 10,
+                            callbacks: {
+                                footer: (items) => {
+                                    const index = items[0].dataIndex;
+                                    const notes = [
+                                        "Centralized in glass rooms.",
+                                        "Maximum individual ownership.",
+                                        "User generated content begins.",
+                                        "SaaS model takes over.",
+                                        "Algorithmic decision making."
+                                    ];
+                                    return "Context: " + notes[index];
+                                }
+                            }
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { family: 'Inter' } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Level (0-100)' }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Harari's Thesis (Doughnut)
+            const ctxHarari = document.getElementById('harariChart').getContext('2d');
+            const harariChart = new Chart(ctxHarari, {
+                type: 'doughnut',
+                data: {
+                    labels: ['The Tech Oligarchy (Elite)', 'Algorithms/AI Agents', 'The "Useless Class"'],
+                    datasets: [{
+                        data: [1, 49, 50], // Conceptual split
+                        backgroundColor: [
+                            '#f97316', // Orange-500 (Elite)
+                            '#334155', // Slate-700 (AI)
+                            '#e7e5e4'  // Stone-200 (Useless)
+                        ],
+                        hoverOffset: 10,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#f5f5f4', font: { family: 'Inter' } } // Light text for dark bg
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const descriptions = [
+                                        " Owns the algorithms & data.",
+                                        " Executes labor & decisions.",
+                                        " Economically irrelevant."
+                                    ];
+                                    return descriptions[context.dataIndex];
+                                }
+                            }
+                        }
+                    },
+                    onClick: (e, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const caption = document.getElementById('harari-caption');
+                            const messages = [
+                                "The Elite: A tiny group of 'super-humans' enhanced by bio-tech and data ownership.",
+                                "The Algorithms: Non-conscious intelligence that outperforms humans in pattern recognition.",
+                                "The Useless Class: Humans who have lost their economic value, not because they are oppressed, but because they are redundant."
+                            ];
+                            caption.textContent = messages[index];
+                            caption.classList.remove('fade-in');
+                            void caption.offsetWidth; // Trigger reflow
+                            caption.classList.add('fade-in');
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderModules();
+            renderMovies();
+            setupFilters();
+            initCharts();
+        });
+
+    </script>
+</body>
+</html>
+
+
